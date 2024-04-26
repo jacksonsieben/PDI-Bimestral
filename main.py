@@ -91,7 +91,7 @@ def add_operation_to_listbox(operation, is_edit=False):
                         messagebox.showerror("Error", f"Campo obrigatório {input_name} não preenchido")
                         error = True
                     
-                    if not dialog.input.isdigit():
+                    if not dialog.input.isdigit() and not error:
                         messagebox.showerror("Error", f"O valor de {input_name} deve ser um número inteiro")
                         error = True
                     
@@ -125,13 +125,11 @@ def edit_operation(listbox):
         listbox.insert(selected_index, edited_operation.get_display_name())
         
 
-def execute_operations(listbox):
-    selected_operation = listbox.curselection()
-
-    if selected_operation:
-        operation_type = [key for key, value in operation_listboxes.items() if value == listbox][0]
-        selected_operation = operation_list[operation_type][selected_operation[0]]
-        print(selected_operation.display_name)
+def execute_operations():
+    for operation_type, listbox in operation_listboxes.items():
+        for index in range(listbox.size()):
+            operation = operation_list[operation_type][index]
+            print(operation.get_display_name())
 
 def show_context_menu(event):
     context_menu = tk.Menu(root, tearoff=0)

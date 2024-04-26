@@ -20,8 +20,9 @@ class Operation:
             return self.display_name
     
     def apply_method(self):
-        if self.method == cv2.cvtColor and self.parameters:
-            self.method = lambda: cv2.cvtColor(self.image, self.parameters[0])
+        if self.parameters:
+            # if self.method == cv2.cvtColor:
+            self.method = lambda: self.method(self.image, self.parameters[0])
 
 
 operation_list = {
@@ -32,23 +33,23 @@ operation_list = {
         Operation("RGB para Luv",   None, [cv2.COLOR_RGB2Luv], OperationType.CONVERTION_COLOR, cv2.cvtColor),
     ],
     OperationType.FILTER: [
-        Operation("Filtro de gaussiano", ["Kernel Size", "SigmaX"], [], OperationType.FILTER, None),
-        Operation("Filtro de blur", ["Kernel Size"], [], OperationType.FILTER, None),
-        Operation("Filtro bilateral", ["Diametro", "sigmaColor", "sigmaSpace"], [], OperationType.FILTER, None),
+        Operation("Filtro de gaussiano", ["Kernel Size", "SigmaX"], [], OperationType.FILTER, cv2.GaussianBlur),
+        Operation("Filtro de blur", ["Kernel Size"], [], OperationType.FILTER, cv2.blur),
+        Operation("Filtro bilateral", ["Diametro", "sigmaColor", "sigmaSpace"], [], OperationType.FILTER, cv2.bilateralFilter),
     ],
     OperationType.EDGE_DETECTOR: [
-        Operation("Detecção de bordas Canny", [], [], OperationType.EDGE_DETECTOR, None),
-        Operation("Detecção de bordas Sobel", [], [], OperationType.EDGE_DETECTOR, None),
-        Operation("Detecção de bordas Laplaciano", [], [], OperationType.EDGE_DETECTOR, None),
+        Operation("Detecção de bordas Canny", ["threshold1", "threshold2"], [], OperationType.EDGE_DETECTOR, cv2.Canny),
+        Operation("Detecção de bordas Sobel", ["dx", "dy", "ksize"], [], OperationType.EDGE_DETECTOR, cv2.Sobel),
+        Operation("Detecção de bordas Laplaciano", ["ddepth", "ksize"], [], OperationType.EDGE_DETECTOR, cv2.Laplacian),
     ],
     OperationType.BINARIZATION: [
-        Operation("Limiarização simples", [], [], OperationType.BINARIZATION, None),
-        Operation("Limiarização adaptativa", [], [], OperationType.BINARIZATION, None),
+        Operation("Limiarização simples", ["thresh", "maxval"], [], OperationType.BINARIZATION, cv2.threshold),
+        Operation("Limiarização adaptativa", ["maxval", "adaptiveMethod", "thresholdType", "blockSize", "C"], [], OperationType.BINARIZATION, cv2.adaptiveThreshold),
     ],
     OperationType.MATH_MORPH: [
-        Operation("Erosão", [], [], OperationType.MATH_MORPH, None),
-        Operation("Dilatação", [], [], OperationType.MATH_MORPH, None),
-        Operation("Abertura", [], [], OperationType.MATH_MORPH, None),
-        Operation("Fechamento", [], [], OperationType.MATH_MORPH, None),
+        Operation("Erosão", ["kernel"], [], OperationType.MATH_MORPH, cv2.erode),
+        Operation("Dilatação", ["kernel"], [], OperationType.MATH_MORPH, cv2.dilate),
+        Operation("Abertura", ["kernel"], [], OperationType.MATH_MORPH, cv2.morphologyEx),
+        Operation("Fechamento", ["kernel"], [], OperationType.MATH_MORPH, cv2.morphologyEx),
     ],
 }

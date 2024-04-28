@@ -1,8 +1,8 @@
+import copy
 import tkinter as tk
 from tkinter import filedialog, Menu, messagebox, ttk, simpledialog
 from PIL import Image, ImageTk
 import cv2
-import numpy as np
 from models.operation import operation_list
 from utils.operation_type import OperationType
 from models.custom_dialog import CustomDialog
@@ -20,7 +20,7 @@ def insert_image(image):
         elif len(image.shape) == 3:
             image_pil = Image.fromarray(image, 'RGB')
         else:
-            print("Unsupported image shape:", image.shape)
+            messagebox.showerror("Error", f"Ocorreu um erro ao inserir a imagem")
             return        
         ratio = min((image_frame.winfo_width()) / image_pil.width, image_frame.winfo_height() / image_pil.height)
         new_size = (int(image_pil.width * ratio), int(image_pil.height * ratio))
@@ -142,22 +142,28 @@ def add_operation_to_listbox(operation, is_edit=False):
     global original_image
     if has_image:
         if operation.input_parameters:
-            for input_name in operation.input_parameters:
+            for i, input_name in enumerate(operation.input_parameters):
                 if input_name is not None:
                     correct_input = False
                     existing_value=None
-                    if is_edit:
+                    if is_edit and hasattr(operation, 'input_values') and operation.parameters[i] is not None:
                         existing_value = operation.input_values[input_name]
                     while not correct_input:
                         error = False
                         dialog = CustomDialog(root, title="Input", prompt=f"Digite o valor de {input_name}", initial_value=existing_value)
                         
                         if dialog.input is None or dialog.input == '':
+                            if not dialog.ok_pressed:
+                                return
                             messagebox.showerror("Error", f"Campo obrigatório {input_name} não preenchido")
                             error = True
                         
-                        if not dialog.input.isdigit() and int(dialog.input) > 0 and int(dialog.input) > 255 and not error:
-                            messagebox.showerror("Error", f"O valor de {input_name} deve ser um número inteiro entre 0 e 255")
+                        try:
+                            if not dialog.input.isdigit() and int(dialog.input) > 0 and int(dialog.input) < 255 and not error:
+                                messagebox.showerror("Error", f"O valor de {input_name} deve ser um número inteiro entre 0 e 255")
+                                error = True
+                        except ValueError:
+                            messagebox.showerror("Error", f"O valor de {input_name} deve ser um número")
                             error = True
                         
                         if input_name == "blockSize":
@@ -186,23 +192,36 @@ def add_operation_to_listbox(operation, is_edit=False):
     else:
         messagebox.showerror("Error", f"Abra uma imagem antes de adicionar operações")
         return
-    
+
 def edit_operation(listbox):
-    selected_index = listbox.curselection()
+    try:
+        selected_index = listbox.curselection()
 
-    if selected_index:
-        operation_type = [key for key, value in operation_listboxes.items() if value == listbox][0]
-        operation = operation_list[operation_type][selected_index[0]]
+        if selected_index:
+            operation_type = [key for key, value in operation_listboxes.items() if value == listbox][0]
+            operation = operation_list[operation_type][selected_index[0]]
 
-        edited_operation = add_operation_to_listbox(operation, True)
+            dialog = CustomDialog(root, title="Selecione uma operação", operations=operation_list[operation_type])
 
-        operation_list[operation_type][selected_index[0]] = edited_operation
+            if dialog.input is None:
+                if not dialog.ok_pressed:
+                    return
+                messagebox.showerror("Error", "Nenhuma operação selecionada")
+                return
 
-        listbox.delete(selected_index)
-        listbox.insert(selected_index, edited_operation.get_display_name())
+            operation_name = dialog.input
+            operation = find_operation_by_name(operation_list[operation_type], operation_name)
+
+            edited_operation = add_operation_to_listbox(operation, True)
+            if edited_operation is not None:
+                listbox.delete(selected_index)
+                listbox.insert(selected_index, edited_operation.get_display_name())
+
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
     
 def find_operation_by_name(operations, operation_name):
-    return next((operation for operation in operations if operation.get_display_name() == operation_name), None)
+    return next((operation for operation in operations if operation.display_name == operation_name or operation.get_display_name() == operation_name), None)
 
 def execute_operations():
     image = original_image.copy()
@@ -211,13 +230,17 @@ def execute_operations():
             operation_name = listbox.get(index)
             operation = find_operation_by_name(operation_list[operation_type], operation_name)
             if operation is not None:
-                image = operation.apply_method(image)
+                try:
+                    image = operation.apply_method(image)
+                except Exception as e:
+                    messagebox.showerror("Error", str(e))
     insert_image(image)
 
 def show_context_menu(event):
     context_menu = tk.Menu(root, tearoff=0)
     context_menu.add_command(label="Editar", command=lambda: edit_operation(event.widget))
     context_menu.add_command(label="Remover", command=lambda: remove_operation(event.widget))
+    context_menu.add_command(label="Duplicar", command=lambda: duplicate_operation(event.widget))
 
     context_menu.tk_popup(event.x_root, event.y_root)
 
@@ -226,6 +249,19 @@ def remove_operation(listbox):
 
     if selected_operation:
         listbox.delete(selected_operation)
+
+    update_menu()
+
+def duplicate_operation(listbox):
+    selected_index = listbox.curselection()
+
+    if selected_index:
+        operation_type = [key for key, value in operation_listboxes.items() if value == listbox][0]
+        operation = find_operation_by_name(operation_list[operation_type], listbox.get(selected_index[0]))
+
+        duplicated_operation = copy.deepcopy(operation)
+
+        listbox.insert(selected_index[0] + 1, duplicated_operation.get_display_name())
 
     update_menu()
 

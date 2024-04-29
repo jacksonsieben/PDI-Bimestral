@@ -14,7 +14,7 @@ MAX_RECENT_FILES = 5
 has_image : bool = False
 original_image = None
 
-def insert_image(image):
+def insert_image(image, canvas):
     if image is not None:
         if len(image.shape) == 2:
             image_pil = Image.fromarray(image, 'L')
@@ -23,12 +23,12 @@ def insert_image(image):
         else:
             messagebox.showerror("Error", f"Ocorreu um erro ao inserir a imagem")
             return        
-        ratio = min((image_frame.winfo_width()) / image_pil.width, image_frame.winfo_height() / image_pil.height)
+        ratio = min((image_frame.winfo_width() / 2) / image_pil.width, image_frame.winfo_height() / image_pil.height)
         new_size = (int(image_pil.width * ratio), int(image_pil.height * ratio))
         image_pil = image_pil.resize(new_size, Image.LANCZOS)
         
         image_tk = ImageTk.PhotoImage(image_pil)
-        x = (image_frame.winfo_width() - new_size[0]) / 2
+        x = (image_frame.winfo_width() / 2 - new_size[0]) / 2
         y = (image_frame.winfo_height() - new_size[1]) / 2
         canvas.create_image(x, y, image=image_tk, anchor='nw')
         canvas.image_tk = image_tk
@@ -45,7 +45,7 @@ def open_image(filepath=None):
             return
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         original_image = image
-        insert_image(image)
+        insert_image(image, canvas_original)
         has_image = True
         save_in_recent(filepath)
         file_menu.entryconfig("Salvar imagem", state="normal")
@@ -61,7 +61,7 @@ def save_image():
     if has_image:
         filepath = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg")])
         if filepath:
-            image_np = np.array(canvas.image_pil)
+            image_np = np.array(canvas_result.image_pil)
             image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
             cv2.imwrite(filepath, image_np)
 
@@ -245,7 +245,7 @@ def execute_operations():
                     image = operation.apply_method(image)
                 except Exception as e:
                     messagebox.showerror("Error", str(e))
-    insert_image(image)
+    insert_image(image, canvas_result)
 
 
 
@@ -283,20 +283,24 @@ def on_listbox_select(event):
 
 root = tk.Tk()
 root.state('zoomed')
+root.title("Processamento de Imagens")
 
 create_menu(root)
 
 operation_frame = tk.Frame(root, bg='light gray')
-operation_frame.place(relx=0, rely=0, relwidth=0.3, relheight=1.0)
+operation_frame.place(relx=0, rely=0, relwidth=0.2, relheight=1.0)
 
 separator = ttk.Separator(root, orient='vertical')
-separator.place(relx=0.3, rely=0, relheight=1.0)
+separator.place(relx=0.2, rely=0, relheight=1.0)
 
 image_frame = tk.Frame(root, bg='white')
-image_frame.place(relx=0.3, rely=0, relwidth=0.7, relheight=1.0)
+image_frame.place(relx=0.2, rely=0, relwidth=0.8, relheight=1.0)
 
-canvas = tk.Canvas(image_frame, bg='white')
-canvas.pack(fill='both', expand=True)
+canvas_original = tk.Canvas(image_frame, bg='white')
+canvas_result = tk.Canvas(image_frame, bg='white')
+
+canvas_original.pack(side='left', fill='both', expand=True)
+canvas_result.pack(side='right', fill='both', expand=True)
 
 operation_listboxes = {operation_type: tk.Listbox(operation_frame,  justify='center') for operation_type in OperationType}
 for operation_type in OperationType:

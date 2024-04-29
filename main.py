@@ -98,6 +98,14 @@ def create_menu(root):
     
     update_menu()
 
+def show_context_menu(event):
+    context_menu = tk.Menu(root, tearoff=0)
+    context_menu.add_command(label="Editar", command=lambda: edit_operation(event.widget))
+    context_menu.add_command(label="Remover", command=lambda: remove_operation(event.widget))
+    context_menu.add_command(label="Duplicar", command=lambda: duplicate_operation(event.widget))
+
+    context_menu.tk_popup(event.x_root, event.y_root)
+
 def update_menu():
     global operation_menu
     state_color="normal"
@@ -236,13 +244,7 @@ def execute_operations():
                     messagebox.showerror("Error", str(e))
     insert_image(image)
 
-def show_context_menu(event):
-    context_menu = tk.Menu(root, tearoff=0)
-    context_menu.add_command(label="Editar", command=lambda: edit_operation(event.widget))
-    context_menu.add_command(label="Remover", command=lambda: remove_operation(event.widget))
-    context_menu.add_command(label="Duplicar", command=lambda: duplicate_operation(event.widget))
 
-    context_menu.tk_popup(event.x_root, event.y_root)
 
 def remove_operation(listbox):
     selected_operation = listbox.curselection()
@@ -257,6 +259,9 @@ def duplicate_operation(listbox):
 
     if selected_index:
         operation_type = [key for key, value in operation_listboxes.items() if value == listbox][0]
+        if operation_type == OperationType.CONVERTION_COLOR:
+            messagebox.showerror("Error", "Não é possível duplicar operações de conversão de cor")
+            return
         operation = find_operation_by_name(operation_list[operation_type], listbox.get(selected_index[0]))
 
         duplicated_operation = copy.deepcopy(operation)

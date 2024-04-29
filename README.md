@@ -36,15 +36,15 @@ A seguir, estão alguns exemplos de como utilizar o software:
 
 1. **Abrindo uma Imagem**:
 
-    ![Abrindo uma Imagem](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714399575/GitHub/PDI-Bimestral/b3twnunarnmti2svtfsi.png)
+    ![Abrindo uma Imagem](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714420976/open-image.png)
 
 2. **Aplicando Filtro de Suavização**:
 
-    ![Filtro de Suavização](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714399574/GitHub/PDI-Bimestral/km3y1gstsqao7enjzxcy.png)
+    ![Filtro de Suavização](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714420974/blur-filter.png)
 
 3. **Aplicando uma Lista Operações**:
 
-    ![Lista de Operações](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714399574/GitHub/PDI-Bimestral/db3bpmekjygmpjmkkqx8.png)
+    ![Lista de Operações](https://res.cloudinary.com/dojgtl3cd/image/upload/v1714420974/list.png)
 
 ## Como Executar
 

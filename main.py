@@ -1,5 +1,6 @@
 import copy
 import tkinter as tk
+import numpy as np
 from tkinter import filedialog, Menu, messagebox, ttk, simpledialog
 from PIL import Image, ImageTk
 import cv2
@@ -58,9 +59,11 @@ def save_in_recent(filepath):
 def save_image():
     global has_image
     if has_image:
-        filepath = filedialog.askopenfilename()
+        filepath = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg")])
         if filepath:
-            cv2.imwrite(filepath, canvas.image_pil)
+            image_np = np.array(canvas.image_pil)
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(filepath, image_np)
 
 def open_recent():
     try:
